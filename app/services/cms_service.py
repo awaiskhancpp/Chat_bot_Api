@@ -31,7 +31,7 @@ async def get_settings() -> dict:
 
 async def get_services() -> list[dict]:
     try:
-        data = await _get("services", {"limit": 100, "depth": 1})
+        data = await _get("services", {"limit": 100, "depth": 0})
         return data.get("docs", [])
     except Exception:
         return []
