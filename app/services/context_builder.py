@@ -81,10 +81,11 @@ def _detect_intents(message: str) -> set[str]:
     return found
 
 
-def _fmt_services(services: list[dict]) -> str:
+def _fmt_services(services: list[dict], site_url: str = "") -> str:
     lines = ["--- Services ---"]
     for s in services[:12]:
         name = s.get("serviceName", "")
+        slug = s.get("slug", "")
         desc = (s.get("serviceDescription") or s.get("description") or "").strip()
         included = ", ".join(
             i.get("text", "") for i in s.get("included", []) if i.get("text")
@@ -94,6 +95,8 @@ def _fmt_services(services: list[dict]) -> str:
             line += f": {desc[:120]}"
         if included:
             line += f" | Includes: {included[:100]}"
+        if site_url and slug:
+            line += f" | Link: {site_url}/services/{slug}"
         lines.append(line)
     return "\n".join(lines)
 
@@ -144,14 +147,14 @@ def _fmt_faqs(faqs: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def _fmt_blogs(blogs: list[dict]) -> str:
+def _fmt_blogs(blogs: list[dict], site_url: str = "") -> str:
     lines = ["--- Blog Posts ---"]
     for b in blogs[:8]:
         title = b.get("title", "")
         slug = b.get("slug", "")
         line = f"• {title}"
-        if slug:
-            line += f" (slug: {slug})"
+        if site_url and slug:
+            line += f" | Link: {site_url}/blog/{slug}"
         lines.append(line)
     return "\n".join(lines)
 
@@ -269,8 +272,21 @@ async def build_context(message: str) -> tuple[str, str]:
         or os.getenv("COMPANY_NAME")
         or "FixinMoto"
     )
+    site_url = os.getenv("SITE_URL", "").rstrip("/")
 
     parts: list[str] = [f"=== {company_name} Company Context ==="]
+
+    # Always include key page links so AI can reference them
+    if site_url:
+        parts.append(
+            f"--- Website Page Links ---\n"
+            f"Home: {site_url}\n"
+            f"All Services: {site_url}/services\n"
+            f"Book Appointment: {site_url}/appointment\n"
+            f"Blog: {site_url}/blog\n"
+            f"Contact: {site_url}/contact\n"
+            f"Locations: {site_url}/locations"
+        )
 
     if settings:
         parts.append(f"Company: {company_name}")
@@ -292,7 +308,7 @@ async def build_context(message: str) -> tuple[str, str]:
         parts.append(_fmt_main_services(data["main_services"]))
 
     if data.get("services"):
-        parts.append(_fmt_services(data["services"]))
+        parts.append(_fmt_services(data["services"], site_url))
 
     if data.get("packages"):
         parts.append(_fmt_packages(data["packages"]))
@@ -304,7 +320,7 @@ async def build_context(message: str) -> tuple[str, str]:
         parts.append(_fmt_faqs(data["faqs"]))
 
     if data.get("blogs"):
-        parts.append(_fmt_blogs(data["blogs"]))
+        parts.append(_fmt_blogs(data["blogs"], site_url))
 
     if "appointment" in intents or "booking" in intents:
         parts.append(_fmt_appointment_info(
