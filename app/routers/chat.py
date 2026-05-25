@@ -44,11 +44,11 @@ async def chat(data: ChatRequest, db: Session = Depends(get_db)):
     ai_messages = [{"role": m.role, "content": m.content} for m in reversed(history)]
 
     # Fetch relevant live CMS context based on user intent
-    context = await build_context(data.message)
+    company_name, context = await build_context(data.message)
 
     # Generate AI response
     try:
-        ai_response = await generate_ai_response(ai_messages, context)
+        ai_response = await generate_ai_response(ai_messages, company_name, context)
     except RateLimitError:
         raise HTTPException(status_code=429, detail="AI service quota exceeded. Please try again later.")
     except AuthenticationError:

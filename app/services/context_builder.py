@@ -1,4 +1,5 @@
 import asyncio
+import os
 from app.services.cms_service import (
     get_settings,
     get_services,
@@ -116,7 +117,8 @@ def _fmt_faqs(faqs: list[dict]) -> str:
     return "\n".join(lines)
 
 
-async def build_context(message: str) -> str:
+async def build_context(message: str) -> tuple[str, str]:
+    """Returns (company_name, context_string) — both pulled from CMS."""
     intents = _detect_intents(message)
 
     # Decide which CMS calls to make
@@ -143,12 +145,18 @@ async def build_context(message: str) -> str:
         for k, v in zip(keys, results)
     }
 
-    parts: list[str] = ["=== FixinMoto Company Context ==="]
+    settings = data.get("settings") or {}
+    company_name = (
+        settings.get("companyName")
+        or os.getenv("COMPANY_NAME")
+        or "FixinMoto"
+    )
+
+    parts: list[str] = [f"=== {company_name} Company Context ==="]
 
     # Company info (always present)
-    settings = data.get("settings") or {}
     if settings:
-        parts.append(f"Company: FixinMoto")
+        parts.append(f"Company: {company_name}")
         if settings.get("phone"):
             parts.append(f"Phone: {settings['phone']}")
         if settings.get("contactEmail"):
@@ -178,4 +186,4 @@ async def build_context(message: str) -> str:
     if data.get("faqs"):
         parts.append(_fmt_faqs(data["faqs"]))
 
-    return "\n\n".join(parts)
+    return company_name, "\n\n".join(parts)
