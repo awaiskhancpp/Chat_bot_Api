@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from datetime import datetime
 from app.database import Base
 
@@ -9,10 +9,14 @@ class Message(Base):
 
     conversation_id = Column(
         Integer,
-        ForeignKey("conversations.id", index=True)
+        ForeignKey("conversations.id")
     )
+
     role = Column(String)
+
     content = Column(Text)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-
+    created_at = Column(
+        DateTime,
+        default=datetime.utcnow
+    )

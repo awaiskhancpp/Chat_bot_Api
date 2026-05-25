@@ -1,0 +1,7 @@
+fastapi==0.117.1
+uvicorn==0.37.0
+groq==1.2.0
+python-dotenv==1.1.0
+SQLAlchemy==2.0.43
+psycopg2-binary==2.9.12
+httpx==0.28.1

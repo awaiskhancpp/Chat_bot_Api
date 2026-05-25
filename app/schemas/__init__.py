@@ -1,4 +1,3 @@
-from app.schemas.message import MessageCreate, MessageResponse
-from app.schemas.conversation import ConversationCreate, ConversationResponse
+from app.schemas.chat import ChatRequest, ChatResponse
 
-__all__ = ["MessageCreate", "MessageResponse", "ConversationCreate", "ConversationResponse"]
+__all__ = ["ChatRequest", "ChatResponse"]
